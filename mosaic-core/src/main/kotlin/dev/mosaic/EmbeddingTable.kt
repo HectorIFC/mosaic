@@ -1,10 +1,12 @@
 package dev.mosaic
 
 import dev.mosaic.internal.FlatMatrix
+import dev.mosaic.internal.Persistence
 import dev.mosaic.internal.TopKHeap
 import dev.mosaic.internal.requirePositiveDim
 import dev.mosaic.internal.requireValidId
 import dev.mosaic.internal.requireVectorDim
+import java.io.File
 
 /**
  * A trainable embedding table mapping token IDs to dense [Float] vectors.
@@ -83,6 +85,19 @@ public class EmbeddingTable internal constructor(
         return mostSimilarInternal(query, topK, excludeId = -1)
     }
 
+    /**
+     * Persists the table to [path] (the binary file). A sidecar `<path>.meta.json`
+     * is written next to it containing the SHA-256 checksum, dimensions, and
+     * creation timestamp.
+     */
+    public fun save(path: String): Unit = save(File(path))
+
+    /** Persists the table to [file]. See [save] (String). */
+    public fun save(file: File): Unit = Persistence.save(this, file)
+
+    /** Internal view of the raw row-major float storage; consumed by [Persistence]. */
+    internal val rawData: FloatArray get() = matrix.data
+
     private fun mostSimilarInternal(query: FloatArray, topK: Int, excludeId: Int): List<Similarity> {
         if (topK <= 0) return emptyList()
         val effectiveK = if (topK > vocabSize) vocabSize else topK
@@ -116,6 +131,22 @@ public class EmbeddingTable internal constructor(
                 initializer.fill(rowBuf, row)
                 matrix.setRow(row, rowBuf)
             }
+            return EmbeddingTable(vocabSize, embeddingDim, matrix)
+        }
+
+        /** Loads an embedding table previously written by [save] from [path]. */
+        public fun load(path: String): EmbeddingTable = load(File(path))
+
+        /** Loads an embedding table previously written by [save] from [file]. */
+        public fun load(file: File): EmbeddingTable = Persistence.load(file)
+
+        /**
+         * Internal constructor for code paths that already have a validated
+         * raw float buffer (notably [Persistence.load]). Skips the initializer
+         * loop. The buffer is copied — callers may reuse it freely afterwards.
+         */
+        internal fun unsafeFromRawData(vocabSize: Int, embeddingDim: Int, data: FloatArray): EmbeddingTable {
+            val matrix = FlatMatrix(vocabSize, embeddingDim, data)
             return EmbeddingTable(vocabSize, embeddingDim, matrix)
         }
 

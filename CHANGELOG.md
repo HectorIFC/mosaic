@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Phase 2 — Persistence & Tessera integration
+- `EmbeddingFormat`: public constants for the on-disk format (`MAGIC`, `FORMAT_VERSION`, `HEADER_SIZE_BYTES`, `BYTES_PER_FLOAT`, `METADATA_EXTENSION`, `expectedBinarySize`)
+- `EmbeddingTable.save(path|file)` and companion `load(path|file)` — binary `.bin` + JSON `.meta.json` sidecar
+- 16-byte header (magic "MOSC" + version + vocabSize + embeddingDim, all little-endian) followed by raw float32 LE payload
+- SHA-256 checksum verifies integrity at load time; size mismatch is detected before checksum
+- `TesseraEmbeddings(tokenizer, embeddings)` public class: validates `vocabSize` match in init; `encode(text): Array<FloatArray>`, `encodeMeanPooled(text): FloatArray`
+- Internal: `Persistence` (ByteBuffer LITTLE_ENDIAN + kotlinx-serialization JSON), `EmbeddingMetadata` data class
+- 19 new tests (Persistence round-trip, corruption detection, version mismatch; Tessera integration train→encode→pool)
+
 #### Phase 1 — Core library
 - `EmbeddingTable` public class: `get(id)`, `get(ids)`, `set`, `update`, `mostSimilar(id, topK, includeSelf)`, `mostSimilar(query, topK)`, `companion.create(vocabSize, embeddingDim, initializer)`
 - `Initializer` public fun interface with 6 factories: `uniformDefault` (PyTorch nn.Embedding default), `uniform`, `xavier`, `he`, `zeros`, `constant`

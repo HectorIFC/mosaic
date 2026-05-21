@@ -81,4 +81,23 @@ class ApiContractTest : StringSpec({
         s.id shouldBe 7
         s.score shouldBe 0.5f
     }
+
+    "EmbeddingFormat exposes documented constants" {
+        EmbeddingFormat.FORMAT_VERSION shouldBe 1
+        EmbeddingFormat.HEADER_SIZE_BYTES shouldBe 16
+        EmbeddingFormat.BYTES_PER_FLOAT shouldBe 4
+        EmbeddingFormat.METADATA_EXTENSION shouldBe ".meta.json"
+        EmbeddingFormat.expectedBinarySize(10, 4) shouldBe (16L + 10 * 4 * 4)
+    }
+
+    "EmbeddingTable.save(String/File) and load(String/File) are public" {
+        val tmp: java.io.File = java.nio.file.Files.createTempDirectory("mosaic-api").resolve("t.bin").toFile()
+        val table = EmbeddingTable.create(vocabSize = 2, embeddingDim = 2, initializer = Initializer.zeros())
+        table.save(tmp.absolutePath)
+        table.save(tmp)
+        val loaded1: EmbeddingTable = EmbeddingTable.load(tmp.absolutePath)
+        val loaded2: EmbeddingTable = EmbeddingTable.load(tmp)
+        loaded1.vocabSize shouldBe 2
+        loaded2.vocabSize shouldBe 2
+    }
 })

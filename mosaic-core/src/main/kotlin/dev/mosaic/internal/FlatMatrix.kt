@@ -17,6 +17,17 @@ internal class FlatMatrix(val rows: Int, val cols: Int) {
 
     val data: FloatArray = FloatArray(rows * cols)
 
+    /**
+     * Secondary constructor that copies [initialData] into the freshly-allocated
+     * backing array. The caller may mutate [initialData] freely afterwards.
+     */
+    constructor(rows: Int, cols: Int, initialData: FloatArray) : this(rows, cols) {
+        require(initialData.size == rows * cols) {
+            "initialData has size ${initialData.size}, expected ${rows * cols}"
+        }
+        System.arraycopy(initialData, 0, data, 0, data.size)
+    }
+
     /** Returns a fresh copy of row [row]. */
     fun getRow(row: Int): FloatArray {
         val result = FloatArray(cols)
