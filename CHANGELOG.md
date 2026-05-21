@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Phase 1 — Core library
+- `EmbeddingTable` public class: `get(id)`, `get(ids)`, `set`, `update`, `mostSimilar(id, topK, includeSelf)`, `mostSimilar(query, topK)`, `companion.create(vocabSize, embeddingDim, initializer)`
+- `Initializer` public fun interface with 6 factories: `uniformDefault` (PyTorch nn.Embedding default), `uniform`, `xavier`, `he`, `zeros`, `constant`
+- `VectorOps` public stateless object: `dotProduct`, `norm`, `cosineSimilarity`, `normalize`, `normalizeInPlace` — all with Double accumulation for precision and zero-norm safety
+- `Similarity` public data class (id, score)
+- Internal: `FlatMatrix` (1D storage per PRD §4.6), `TopKHeap` (O(N log K) for `mostSimilar`), `Validators`
+- 50 unit tests covering all Phase 1 acceptance criteria (round-trip, symmetry, range, ordering, boundary errors)
+- Coverage: 99.3% lines / 95.7% methods / 95.8% branches (threshold 80%)
+
 #### Phase 0 — Setup & infrastructure
 - Multi-module Gradle build: `mosaic-core` (library), `mosaic-cli` (application), `mosaic-samples` (examples)
 - Kotlin 2.3.21, JVM toolchain 21, `explicitApi()` enabled on `mosaic-core`
