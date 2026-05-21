@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Phase 3 — Samples, benchmarks & validation
+- `mosaic-samples` populated with 5 runnable demos: `QuickStartSample`, `TesseraIntegrationSample`, `SimilaritySample`, `PersistenceSample`, `InitializationSample`
+- `BenchmarkSample` runnable: measures `mostSimilar`, `save`, `load`, and memory residency across vocab sizes
+- `BENCHMARKS.md` at repo root with real measurements on Apple M1 / JVM 21: `mostSimilar(topK=10)` at vocab 10k takes ~3 ms (32× under the 100 ms acceptance criterion)
+- `mosaic-samples/README.md` documenting each sample and how to run it via `-PmainClass=...`
+
 #### Phase 2 — Persistence & Tessera integration
 - `EmbeddingFormat`: public constants for the on-disk format (`MAGIC`, `FORMAT_VERSION`, `HEADER_SIZE_BYTES`, `BYTES_PER_FLOAT`, `METADATA_EXTENSION`, `expectedBinarySize`)
 - `EmbeddingTable.save(path|file)` and companion `load(path|file)` — binary `.bin` + JSON `.meta.json` sidecar
