@@ -14,6 +14,11 @@ ktlint_code_style = intellij_idea
 # Allow trailing commas in function parameters and arguments
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
+# Disable class-signature rule (added in ktlint 14). The default forces multi-line
+# class headers when the supertype call has a body (e.g. `class T : StringSpec({...})`).
+# That would re-indent every Kotest spec across 300+ lines for pure cosmetics —
+# not worth it. Existing `max_line_length = 120` already keeps headers readable.
+ktlint_standard_class-signature = disabled
 
 [*.md]
 trim_trailing_whitespace = false

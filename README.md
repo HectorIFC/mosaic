@@ -69,7 +69,7 @@ dependencyResolutionManagement {
 
 // build.gradle.kts
 dependencies {
-    implementation("com.github.HectorIFC:mosaic:mosaic-core-v0.0.1")
+    implementation("com.github.HectorIFC:mosaic:mosaic-core-v0.0.3")
     // Tessera comes as a transitive dependency — no need to declare it explicitly
 }
 ```
@@ -93,7 +93,7 @@ dependencyResolutionManagement {
 
 // build.gradle.kts
 dependencies {
-    implementation("dev.mosaic:mosaic-core:0.0.1")
+    implementation("dev.mosaic:mosaic-core:0.0.3")
 }
 ```
 
