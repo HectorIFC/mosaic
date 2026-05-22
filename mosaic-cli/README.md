@@ -58,7 +58,7 @@ mosaic-cli inspect --input embeddings.bin
 
 Sample output:
 
-```
+```text
 Mosaic Embedding Table
 ─────────────────────────────────
 Version:             1

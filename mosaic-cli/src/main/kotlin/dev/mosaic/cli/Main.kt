@@ -41,6 +41,12 @@ fun runCli(args: Array<String>): Int {
     }
 }
 
+// The catch-all `Exception` arm is the safety net for the "no stack traces in
+// normal use" contract from PRD §4.8 — any uncaught throw inside a command
+// becomes a friendly "Error: ..." line on stderr and exit code 2 instead of a
+// Kotlin stack dump. detekt's TooGenericExceptionCaught is suppressed because
+// this is exactly the right place to be generic.
+@Suppress("TooGenericExceptionCaught")
 private inline fun dispatch(block: () -> Int): Int = try {
     block()
 } catch (e: UsageError) {
@@ -48,6 +54,9 @@ private inline fun dispatch(block: () -> Int): Int = try {
     1
 } catch (e: RuntimeFailure) {
     System.err.println("Error: ${e.message}")
+    2
+} catch (e: Exception) {
+    System.err.println("Error: ${e.message ?: "Unexpected failure (${e::class.simpleName})"}")
     2
 }
 

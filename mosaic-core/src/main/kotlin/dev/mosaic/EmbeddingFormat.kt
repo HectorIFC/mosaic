@@ -37,8 +37,13 @@ public object EmbeddingFormat {
     /** File extension for the metadata sidecar, appended to the binary path. */
     public const val METADATA_EXTENSION: String = ".meta.json"
 
-    /** Returns the expected `.bin` file size for the given dimensions. */
+    /**
+     * Returns the expected `.bin` file size for the given dimensions. Both
+     * arguments must be positive.
+     */
     public fun expectedBinarySize(vocabSize: Int, embeddingDim: Int): Long {
+        require(vocabSize > 0) { "vocabSize must be > 0, got $vocabSize" }
+        require(embeddingDim > 0) { "embeddingDim must be > 0, got $embeddingDim" }
         return HEADER_SIZE_BYTES.toLong() + vocabSize.toLong() * embeddingDim * BYTES_PER_FLOAT
     }
 

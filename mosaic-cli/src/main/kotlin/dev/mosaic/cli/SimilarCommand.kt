@@ -16,6 +16,7 @@ internal object SimilarCommand {
         val parsed = Args.parse(args)
         val embPath = parsed.requireString("--embeddings", "-e")
         val topK = parsed.optionalInt(DEFAULT_TOP_K, "--top-k", "-k")
+        if (topK <= 0) throw UsageError("--top-k must be > 0, got $topK")
         val embFile = File(embPath)
         if (!embFile.exists()) throw RuntimeFailure("Embedding file not found: $embPath")
 

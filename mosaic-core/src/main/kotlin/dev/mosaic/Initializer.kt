@@ -31,26 +31,33 @@ public fun interface Initializer {
             }
         }
 
-        /** Uniform distribution in `[-bound, +bound]`. */
+        /** Uniform distribution in `[-bound, +bound]`. Bound must be finite and non-negative. */
         public fun uniform(bound: Float, seed: Long = DEFAULT_SEED): Initializer {
+            require(bound.isFinite() && bound >= 0f) {
+                "bound must be finite and >= 0, got $bound"
+            }
             val random = Random(seed)
             return Initializer { target, _ -> fillUniform(target, bound, random) }
         }
 
         /**
          * Xavier/Glorot uniform: bound = `sqrt(6 / (fanIn + fanOut))`. Suitable
-         * for layers using symmetric activations (tanh, sigmoid).
+         * for layers using symmetric activations (tanh, sigmoid). Both [fanIn]
+         * and [fanOut] must be positive.
          */
         public fun xavier(fanIn: Int, fanOut: Int, seed: Long = DEFAULT_SEED): Initializer {
+            require(fanIn > 0) { "fanIn must be > 0, got $fanIn" }
+            require(fanOut > 0) { "fanOut must be > 0, got $fanOut" }
             val bound = sqrt(XAVIER_NUMERATOR / (fanIn + fanOut).toDouble()).toFloat()
             return uniform(bound, seed)
         }
 
         /**
          * He uniform: bound = `sqrt(6 / fanIn)`. Suitable for layers using
-         * ReLU-family activations.
+         * ReLU-family activations. [fanIn] must be positive.
          */
         public fun he(fanIn: Int, seed: Long = DEFAULT_SEED): Initializer {
+            require(fanIn > 0) { "fanIn must be > 0, got $fanIn" }
             val bound = sqrt(XAVIER_NUMERATOR / fanIn.toDouble()).toFloat()
             return uniform(bound, seed)
         }

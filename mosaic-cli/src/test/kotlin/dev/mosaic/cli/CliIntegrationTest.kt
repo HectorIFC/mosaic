@@ -10,14 +10,21 @@ import java.io.File
 import java.io.PrintStream
 import java.nio.file.Files
 
-private fun captured(block: () -> Int): Triple<Int, String, String> {
+// System.out / System.err are JVM-globals. If Kotest ever parallelizes specs
+// (today it doesn't, but Kotest 6.x has parallelism switches), two `captured`
+// calls running concurrently would interleave each other's stdout — the
+// captured strings would be nondeterministic and assertions would flake.
+// A single static lock serializes all captures across the whole test run.
+private val ioCaptureLock = Any()
+
+private fun captured(block: () -> Int): Triple<Int, String, String> = synchronized(ioCaptureLock) {
     val outBuf = ByteArrayOutputStream()
     val errBuf = ByteArrayOutputStream()
     val originalOut = System.out
     val originalErr = System.err
     System.setOut(PrintStream(outBuf, true, Charsets.UTF_8))
     System.setErr(PrintStream(errBuf, true, Charsets.UTF_8))
-    return try {
+    try {
         val code = block()
         Triple(code, outBuf.toString(Charsets.UTF_8), errBuf.toString(Charsets.UTF_8))
     } finally {

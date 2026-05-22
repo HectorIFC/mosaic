@@ -22,9 +22,11 @@ import java.io.File
  * val table = EmbeddingTable.create(vocabSize = 1000, embeddingDim = 64)
  * val vector = table.get(id = 42)
  * val similar = table.mostSimilar(id = 42, topK = 5)
+ * table.save("embeddings.bin")
  * ```
  *
- * Persistence (`save` / `load`) and Tessera integration arrive in Phase 2.
+ * The table is also persistable via [save] / [load] and integrates with Tessera
+ * via the [TesseraEmbeddings] wrapper.
  */
 public class EmbeddingTable internal constructor(
     public val vocabSize: Int,

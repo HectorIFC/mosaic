@@ -6,7 +6,7 @@ Performance measurements for `mosaic-core` operations across representative voca
 
 - **Machine:** Apple M1, 8 GB RAM, macOS (Darwin arm64)
 - **JVM:** OpenJDK 21 (Temurin / SDKMAN `21-open`)
-- **Mosaic version:** `0.1.0-SNAPSHOT`
+- **Mosaic version:** `0.0.1` (captured during pre-release development of this same tag)
 - **Embedding dim:** 128 (typical for small/medium production embeddings)
 - **Methodology:** 2 warm-up runs + 5 measured runs per case, reporting the median wall-clock time. Single thread, JIT warm.
 

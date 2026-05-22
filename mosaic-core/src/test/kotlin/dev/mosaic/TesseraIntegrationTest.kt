@@ -104,9 +104,13 @@ class TesseraIntegrationTest : StringSpec({
             initializer = Initializer.constant(7f),
         )
         val pipeline = TesseraEmbeddings(tokenizer, table)
-        // Tessera may emit zero tokens for empty input; verify we don't NaN.
+        // Tessera emits zero tokens for empty input; the pooled result must
+        // be a zero vector of the configured dim (not NaN, not the constant
+        // initializer fill — the input is empty, so pooling has nothing to
+        // average and the documented contract is "return a zero vector").
         val pooled = pipeline.encodeMeanPooled("")
         pooled.size shouldBe dim
         pooled.all { !it.isNaN() } shouldBe true
+        pooled.all { it == 0f } shouldBe true
     }
 })

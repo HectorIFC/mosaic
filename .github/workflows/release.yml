@@ -54,23 +54,33 @@ jobs:
           echo "New tag      : ${{ steps.tag.outputs.new_tag }}"
           echo "Bump type    : ${{ steps.tag.outputs.release_type }}"
 
-      - name: Abort if no version change
-        if: steps.tag.outputs.new_tag == steps.tag.outputs.previous_tag
+      # Single gate that decides whether the rest of the job should run.
+      # A step's `exit 0` only ends THAT step — subsequent steps still execute.
+      # So we compute the decision once here, emit it as an output, and gate
+      # every later step on `if: steps.gate.outputs.should_release == 'true'`.
+      #
+      # Conditions for releasing:
+      #   - there are releasable commits since the last tag (new_tag != previous_tag)
+      #   - the computed tag does not already exist locally (safety net against
+      #     concurrent runs that compute the same version before one has tagged)
+      - name: Determine release eligibility
+        id: gate
         run: |
-          echo "No releasable commits since last tag — skipping release."
-          exit 0
+          NEW_TAG="${{ steps.tag.outputs.new_tag }}"
+          PREV_TAG="${{ steps.tag.outputs.previous_tag }}"
 
-      # Safety net: skip if the tag already exists (prevents 409 when two
-      # workflow runs compute the same version concurrently before the first
-      # one has created the tag).
-      - name: Abort if tag already exists
-        run: |
-          TAG="${{ steps.tag.outputs.new_tag }}"
-          if git tag --list | grep -qx "$TAG"; then
-            echo "Tag $TAG already exists — this version was already released. Skipping."
+          if [ "$NEW_TAG" = "$PREV_TAG" ]; then
+            echo "No releasable commits since last tag — skipping release."
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          echo "Tag $TAG does not exist yet — proceeding with release."
+          if git tag --list | grep -qx "$NEW_TAG"; then
+            echo "Tag $NEW_TAG already exists — this version was already released. Skipping."
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Tag $NEW_TAG does not exist yet — proceeding with release."
+          echo "should_release=true" >> "$GITHUB_OUTPUT"
 
       # The action is the single source of truth for the version.
       # All version references across the repo are updated atomically here.
@@ -79,6 +89,7 @@ jobs:
       # [skip ci] in the commit message prevents this push from triggering
       # another release run — the actual loop-prevention mechanism.
       - name: Update version in all files
+        if: steps.gate.outputs.should_release == 'true'
         run: |
           VERSION="${{ steps.tag.outputs.new_version }}"
           TAG="${{ steps.tag.outputs.new_tag }}"
@@ -104,6 +115,7 @@ jobs:
           echo "All version references updated to ${TAG} / ${VERSION}"
 
       - name: Stage version bump commit (local only)
+        if: steps.gate.outputs.should_release == 'true'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -116,6 +128,7 @@ jobs:
           fi
 
       - name: Build & verify
+        if: steps.gate.outputs.should_release == 'true'
         run: ./gradlew build koverVerify
 
       # GitHub Packages does not allow overwriting a published version (HTTP 409).
@@ -124,6 +137,7 @@ jobs:
       # Treating 409 as success lets the pipeline complete (tag + release) even
       # when the artifact was already uploaded by an earlier interrupted run.
       - name: Publish to GitHub Packages
+        if: steps.gate.outputs.should_release == 'true'
         run: |
           set +e
           ./gradlew :mosaic-core:publishMavenPublicationToGitHubPackagesRepository \
@@ -151,6 +165,7 @@ jobs:
       # Push only after build and publish succeed. [skip ci] in the commit
       # message prevents this push from triggering a new release workflow run.
       - name: Push version bump to main
+        if: steps.gate.outputs.should_release == 'true'
         run: |
           if ! git diff --quiet HEAD origin/main; then
             git push origin main
@@ -160,6 +175,7 @@ jobs:
           fi
 
       - name: Create git tag
+        if: steps.gate.outputs.should_release == 'true'
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -167,6 +183,7 @@ jobs:
           tag_prefix: v
 
       - name: Create GitHub Release
+        if: steps.gate.outputs.should_release == 'true'
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.tag.outputs.new_tag }}

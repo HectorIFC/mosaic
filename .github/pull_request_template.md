@@ -17,7 +17,7 @@
 - [ ] No
 - [ ] Yes — describe the diff to the public API in `mosaic-core` below:
 
-```
+```diff
 // before
 // after
 ```
