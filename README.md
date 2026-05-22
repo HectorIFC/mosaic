@@ -21,8 +21,6 @@
 
 ## Status
 
-✅ **v0.0.1 ready** — all 6 phases complete.
-
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for design details.
 
 ## About
