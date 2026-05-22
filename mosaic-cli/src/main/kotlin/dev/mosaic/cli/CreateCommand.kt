@@ -38,24 +38,22 @@ internal object CreateCommand {
         return 0
     }
 
-    private fun buildInitializer(name: String, dim: Int, seed: Long, parsed: Args): Initializer {
-        return when (name) {
-            "uniform" -> {
-                val bound = parsed.optionalFloat("--bound")
-                if (bound != null) Initializer.uniform(bound, seed) else Initializer.uniformDefault(seed)
-            }
-            "xavier" -> Initializer.xavier(fanIn = dim, fanOut = dim, seed = seed)
-            "he" -> Initializer.he(fanIn = dim, seed = seed)
-            "zeros" -> Initializer.zeros()
-            "constant" -> {
-                val value = parsed.optionalFloat("--value")
-                    ?: throw UsageError("Initializer 'constant' requires --value")
-                Initializer.constant(value)
-            }
-            else -> throw UsageError(
-                "Unknown initializer '$name'. Valid: uniform, xavier, he, zeros, constant",
-            )
+    private fun buildInitializer(name: String, dim: Int, seed: Long, parsed: Args): Initializer = when (name) {
+        "uniform" -> {
+            val bound = parsed.optionalFloat("--bound")
+            if (bound != null) Initializer.uniform(bound, seed) else Initializer.uniformDefault(seed)
         }
+        "xavier" -> Initializer.xavier(fanIn = dim, fanOut = dim, seed = seed)
+        "he" -> Initializer.he(fanIn = dim, seed = seed)
+        "zeros" -> Initializer.zeros()
+        "constant" -> {
+            val value = parsed.optionalFloat("--value")
+                ?: throw UsageError("Initializer 'constant' requires --value")
+            Initializer.constant(value)
+        }
+        else -> throw UsageError(
+            "Unknown initializer '$name'. Valid: uniform, xavier, he, zeros, constant",
+        )
     }
 
     private fun help(): String = """
