@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Phase 5 — GitHub Pages site
+- `docs/index.html` — single-page site with 10 sections (nav, hero, stats, features, how-it-works, visualized, quick start, tech stack, quality, footer)
+- Orange/black/white palette (`#fb923c` / `#f97316` / `#ea580c` over `#0a0a0a`); Inter + JetBrains Mono via Google Fonts; count-up + scroll fade-in animations
+- Logo asset family in `docs/logo/`: `logo.svg`, `logo-{1024,512,256,128,64}.png`, `favicon-{16,32,48,180,192,512}.png`, `favicon.ico` — programmatically generated from a 4×4 tesserae grid with diagonal tonal gradient
+- `docs/lookup.mp4` (66 KB) and `docs/similar.mp4` (70 KB) — H.264 animations of the lookup pipeline and `mostSimilar` algorithm; rendered with Pillow + ffmpeg
+- `docs/site.webmanifest` — PWA manifest with `theme_color: #f97316`
+- Open Graph + Twitter Card meta tags
+- Total `docs/` payload: 288 KB
+
 #### Phase 4 — CLI
 - `mosaic-cli` real implementation with 5 commands: `create`, `inspect`, `stats`, `similar`, `encode`
 - Manual argument parser (`Args.kt`) supporting `--name value`, short aliases, and negative-number values
