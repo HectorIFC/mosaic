@@ -41,9 +41,7 @@ public class EmbeddingTable internal constructor(
     }
 
     /** Returns copies of the rows at the given [ids], in order. */
-    public fun get(ids: IntArray): Array<FloatArray> {
-        return Array(ids.size) { idx -> get(ids[idx]) }
-    }
+    public fun get(ids: IntArray): Array<FloatArray> = Array(ids.size) { idx -> get(ids[idx]) }
 
     /** Writes [vector] into the row at [id]. The source array is copied; the caller may mutate it freely afterwards. */
     public fun set(id: Int, vector: FloatArray) {

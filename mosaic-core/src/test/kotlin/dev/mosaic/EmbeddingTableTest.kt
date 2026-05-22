@@ -127,10 +127,8 @@ class EmbeddingTableTest : StringSpec({
     }
 })
 
-private fun embeddingsWithSeed(vocabSize: Int, embeddingDim: Int, seed: Long): EmbeddingTable {
-    return EmbeddingTable.create(
-        vocabSize = vocabSize,
-        embeddingDim = embeddingDim,
-        initializer = Initializer.uniform(bound = 1f, seed = seed),
-    )
-}
+private fun embeddingsWithSeed(vocabSize: Int, embeddingDim: Int, seed: Long): EmbeddingTable = EmbeddingTable.create(
+    vocabSize = vocabSize,
+    embeddingDim = embeddingDim,
+    initializer = Initializer.uniform(bound = 1f, seed = seed),
+)
