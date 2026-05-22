@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Phase 4 — CLI
+- `mosaic-cli` real implementation with 5 commands: `create`, `inspect`, `stats`, `similar`, `encode`
+- Manual argument parser (`Args.kt`) supporting `--name value`, short aliases, and negative-number values
+- Public `EmbeddingMetadata` data class promoted from `internal`
+- `EmbeddingFormat.readMetadata(path|file)` and `verifyChecksum(path|file)` — read sidecar / verify integrity without full table load
+- Testable `runCli(args): Int` entry point (returns exit code instead of calling `exitProcess`)
+- 22 CLI integration tests (every command, --help, exit codes 0/1/2, JSON/CSV/pretty formats)
+- `mosaic-cli/README.md` with full command reference
+- Static guarantee: CLI uses zero `internal` symbols from `mosaic-core` (enforced by Kotlin module boundary)
+
 #### Phase 3 — Samples, benchmarks & validation
 - `mosaic-samples` populated with 5 runnable demos: `QuickStartSample`, `TesseraIntegrationSample`, `SimilaritySample`, `PersistenceSample`, `InitializationSample`
 - `BenchmarkSample` runnable: measures `mostSimilar`, `save`, `load`, and memory residency across vocab sizes

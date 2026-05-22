@@ -1,8 +1,8 @@
 package dev.mosaic.internal
 
 import dev.mosaic.EmbeddingFormat
+import dev.mosaic.EmbeddingMetadata
 import dev.mosaic.EmbeddingTable
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -11,21 +11,9 @@ import java.nio.ByteOrder
 import java.security.MessageDigest
 import java.time.Instant
 
-@Serializable
-internal data class EmbeddingMetadata(
-    val version: Int,
-    val vocabSize: Int,
-    val embeddingDim: Int,
-    val format: String,
-    val byteOrder: String,
-    val checksum: String,
-    val createdAt: String,
-    val tesseraCompatible: Boolean,
-)
-
 internal object Persistence {
 
-    private val json: Json = Json { prettyPrint = true }
+    val json: Json = Json { prettyPrint = true }
 
     fun save(table: EmbeddingTable, binFile: File) {
         val metaFile = metaFileFor(binFile)
@@ -104,7 +92,26 @@ internal object Persistence {
         return EmbeddingTable.unsafeFromRawData(vocabSize, embeddingDim, data)
     }
 
-    private fun sha256Hex(bytes: ByteArray): String {
+    /** Parses the sidecar JSON without touching the binary payload. */
+    fun readMetadata(binFile: File): EmbeddingMetadata {
+        val metaFile = metaFileFor(binFile)
+        require(metaFile.exists()) { "Embedding metadata not found: ${metaFile.path}" }
+        return json.decodeFromString(metaFile.readText())
+    }
+
+    /**
+     * Returns `true` iff the SHA-256 of the binary payload matches the
+     * checksum recorded in the sidecar metadata. Returns `false` if the
+     * checksum is wrong; throws if either file is missing or malformed.
+     */
+    fun verifyChecksum(binFile: File): Boolean {
+        require(binFile.exists()) { "Embedding binary not found: ${binFile.path}" }
+        val meta = readMetadata(binFile)
+        val actual = sha256Hex(binFile.readBytes())
+        return actual == meta.checksum
+    }
+
+    fun sha256Hex(bytes: ByteArray): String {
         val digest = MessageDigest.getInstance("SHA-256").digest(bytes)
         return buildString(digest.size * 2) {
             for (b in digest) {
@@ -115,8 +122,7 @@ internal object Persistence {
         }
     }
 
-    private fun metaFileFor(binFile: File): File =
-        File(binFile.parentFile, binFile.name + EmbeddingFormat.METADATA_EXTENSION)
+    fun metaFileFor(binFile: File): File = File(binFile.parentFile, binFile.name + EmbeddingFormat.METADATA_EXTENSION)
 
     private const val HEX_RADIX: Int = 16
     private const val BYTE_MASK: Int = 0xFF

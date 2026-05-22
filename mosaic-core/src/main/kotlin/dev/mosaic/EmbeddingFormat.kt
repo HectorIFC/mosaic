@@ -41,4 +41,24 @@ public object EmbeddingFormat {
     public fun expectedBinarySize(vocabSize: Int, embeddingDim: Int): Long {
         return HEADER_SIZE_BYTES.toLong() + vocabSize.toLong() * embeddingDim * BYTES_PER_FLOAT
     }
+
+    /**
+     * Parses the `.meta.json` sidecar at `<path>${[METADATA_EXTENSION]}`
+     * without loading the binary payload. Cheap enough for `inspect`-style
+     * tools that just want to display file metadata.
+     */
+    public fun readMetadata(path: String): EmbeddingMetadata = readMetadata(java.io.File(path))
+
+    /** File-based variant of [readMetadata]. */
+    public fun readMetadata(file: java.io.File): EmbeddingMetadata = dev.mosaic.internal.Persistence.readMetadata(file)
+
+    /**
+     * Returns `true` iff the binary file's SHA-256 matches the checksum in
+     * the sidecar metadata. Useful for integrity checks without paying for
+     * a full [EmbeddingTable.load].
+     */
+    public fun verifyChecksum(path: String): Boolean = verifyChecksum(java.io.File(path))
+
+    /** File-based variant of [verifyChecksum]. */
+    public fun verifyChecksum(file: java.io.File): Boolean = dev.mosaic.internal.Persistence.verifyChecksum(file)
 }
