@@ -2,7 +2,7 @@
 
 A small command-line interface for inspecting, creating, and exercising Mosaic embedding tables. It exists primarily as **debug / introspection tooling**, not as a production interface — every command is a thin shell around `mosaic-core`'s public API.
 
-> **Constraint:** the CLI is forbidden from touching any `internal` symbol in `mosaic-core`. Kotlin enforces this at the module boundary (mosaic-cli is a separate Gradle module, so `internal` is unreachable). The PRD §3.3 acceptance criterion "CLI apenas usa API pública" is satisfied by construction.
+> **Constraint:** the CLI is forbidden from touching any `internal` symbol in `mosaic-core`. Kotlin enforces this at the module boundary (mosaic-cli is a separate Gradle module, so `internal` is unreachable). The acceptance criterion "CLI apenas usa API pública" is satisfied by construction.
 
 ## Running
 
