@@ -58,8 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `VectorOps` public stateless object: `dotProduct`, `norm`, `cosineSimilarity`, `normalize`, `normalizeInPlace` — all with Double accumulation for precision and zero-norm safety
 - `Similarity` public data class (id, score)
 - Internal: `FlatMatrix` (1D storage per PRD §4.6), `TopKHeap` (O(N log K) for `mostSimilar`), `Validators`
-- 50 unit tests covering all Phase 1 acceptance criteria (round-trip, symmetry, range, ordering, boundary errors)
-- Coverage: 99.3% lines / 95.7% methods / 95.8% branches (threshold 80%)
+- 50 unit tests covering all Phase 1 acceptance criteria (round-trip, symmetry, range, ordering, boundary errors). Final v0.0.1 line coverage on `mosaic-core` is **97.6 %** (well above the 80 % threshold); see the badge in the root README for the up-to-date figure.
 
 #### Phase 0 — Setup & infrastructure
 - Multi-module Gradle build: `mosaic-core` (library), `mosaic-cli` (application), `mosaic-samples` (examples)

@@ -127,7 +127,7 @@ object EmbeddingFormat {
 }
 ```
 
-Every public symbol carries a KDoc comment. The module uses `explicitApi()`, so anything not marked `public` is `internal` and unreachable from consumers.
+Every public symbol carries a KDoc comment. The module enables `explicitApi()`, which forces every top-level / member declaration to carry an explicit visibility modifier (`public` / `internal` / `private`) and explicit return types on public functions — the compiler rejects code that relies on Kotlin's default visibility for anything that would otherwise be exposed publicly. Anything we explicitly mark `internal` is unreachable from consumers because Kotlin's `internal` visibility is module-scoped.
 
 ## Building locally
 

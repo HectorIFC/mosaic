@@ -74,7 +74,11 @@ jobs:
             echo "should_release=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if git tag --list | grep -qx "$NEW_TAG"; then
+          # `git rev-parse --verify` does a literal ref lookup; safer than
+          # `grep -qx "$NEW_TAG"` which would treat `$NEW_TAG` as a regex (e.g.
+          # `v1.2.3` would match an unrelated tag like `v1a2b3` because `.` is
+          # a wildcard).
+          if git rev-parse -q --verify "refs/tags/$NEW_TAG" >/dev/null; then
             echo "Tag $NEW_TAG already exists — this version was already released. Skipping."
             echo "should_release=false" >> "$GITHUB_OUTPUT"
             exit 0
