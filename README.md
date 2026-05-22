@@ -4,49 +4,61 @@
   <img src="docs/logo/logo-512.png" alt="Mosaic" width="180">
 </p>
 
-> Lookup-based token embeddings for the JVM, in pure Kotlin.
->
-> *Tessera é a peça. Mosaic é o todo.*
+<p align="center">
+  <a href="https://github.com/HectorIFC/mosaic/actions/workflows/ci.yml"><img src="https://github.com/HectorIFC/mosaic/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://jitpack.io/#HectorIFC/mosaic"><img src="https://jitpack.io/v/HectorIFC/mosaic.svg" alt="JitPack"></a>
+  <a href="https://github.com/HectorIFC/mosaic/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/coverage-97.6%25-brightgreen" alt="Coverage 97.6%">
+  <img src="https://img.shields.io/badge/kotlin-2.3.21-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin 2.3.21">
+  <img src="https://img.shields.io/badge/JVM-21-orange" alt="JVM 21">
+</p>
 
-🌐 **Site:** [hectorifc.github.io/mosaic](https://hectorifc.github.io/mosaic/) (after Phase 5)
+> **Lookup-based token embeddings for the JVM, in pure Kotlin.**
+>
+> *Tessera is the piece. Mosaic is the whole.*
+
+**🌐 Site:** [hectorifc.github.io/mosaic](https://hectorifc.github.io/mosaic/)
 
 ## Status
 
-🚧 **Em desenvolvimento** — Fase 0 (Setup multi-módulo + infraestrutura)
+✅ **v0.0.1 ready** — all 6 phases complete.
 
-Veja [PRD.md](./PRD.md) para a especificação completa.
+See [PRD.md](./PRD.md) for the full specification and [ARCHITECTURE.md](./ARCHITECTURE.md) for design details.
 
-## Sobre
+## About
 
-Mosaic é uma **biblioteca Kotlin** que fornece uma `EmbeddingTable` treinável — uma matriz `[vocabSize × embeddingDim]` mapeando IDs de tokens a vetores densos de `Float`. Foi construída como projeto irmão do [Tessera](https://github.com/HectorIFC/tessera) (tokenizer BPE), completando o pipeline `texto → tokens → vetores` em Kotlin puro.
+Mosaic is a **Kotlin library** that provides a trainable `EmbeddingTable` — a `[vocabSize × embeddingDim]` matrix mapping token IDs to dense `Float` vectors. Built as a sister project to [Tessera](https://github.com/HectorIFC/tessera) (BPE tokenizer), completing the `text → tokens → vectors` pipeline in pure Kotlin.
 
-**O que Mosaic É:**
-- Uma lookup table tipo `nn.Embedding` do PyTorch
-- Storage eficiente em `FloatArray` 1D contíguo
-- Operações vetoriais essenciais (cosine similarity, top-K nearest)
-- Inicializadores plugáveis (uniform, Xavier, He, zeros, constant)
-- Persistência binária compacta com checksum
-- Integração nativa com Tessera
+**What Mosaic is:**
 
-**O que Mosaic NÃO É:**
-- Não treina embeddings auto-supervisionado (sem Word2Vec, sem backprop, sem SGD)
-- Não faz operações matriciais densas (apenas vetor × vetor e matriz × vetor)
-- Não acelera com GPU
-- Não implementa quantização
+- A lookup table modeled on PyTorch's `nn.Embedding`
+- Efficient flat 1D `FloatArray` storage (cache-friendly, ~1 % overhead)
+- Essential vector operations (cosine similarity, top-K nearest)
+- 6 pluggable initializers (`uniformDefault`, `uniform`, `xavier`, `he`, `zeros`, `constant`)
+- Compact binary persistence with SHA-256 checksum
+- Native Tessera integration via `TesseraEmbeddings`
 
-A intenção é ser uma **peça de Lego** sólida: outros projetos (futuros ou externos) que queiram treinar embeddings de fato podem usar Mosaic como storage e atualizar os pesos via API.
+**What Mosaic is NOT:**
 
-### Princípios
+- It does **not** train embeddings (no Word2Vec, no backprop, no SGD)
+- No dense matrix-by-matrix operations
+- No GPU acceleration
+- No quantization
+- Text only (no image/audio embeddings)
 
-- **Biblioteca, não aplicação** — destinada a ser consumida por outros projetos Kotlin
-- **Kotlin puro** — sem libs de ML, sem libs de matemática (a menos que comprovadamente necessárias por performance)
-- **`FloatArray` everywhere** — sem `Double`, sem boxing, sem `List<Float>`
-- **Storage flat 1D** — cache locality é levado a sério
-- **API pública minimalista** — só o necessário, marcado com `public` explicitamente
+The intent is to be a **solid Lego block**: other projects (yours or future) that want to actually train embeddings can use Mosaic as the storage layer and update weights via the public API.
 
-## Instalação (após release v0.0.1)
+### Principles
 
-### Gradle (Kotlin DSL)
+- **Library, not application** — meant to be consumed by other Kotlin projects (but ships with a CLI module for debug)
+- **Pure Kotlin** — no ML libraries, no math libraries (unless proven necessary for performance)
+- **`FloatArray` everywhere** — no `Double`, no boxing, no `List<Float>`
+- **Flat 1D storage** — cache locality matters
+- **Minimal public API** — only what's necessary, all marked `public` explicitly via `explicitApi()`
+
+## Installation
+
+### Gradle (Kotlin DSL) — via JitPack
 
 ```kotlin
 // settings.gradle.kts
@@ -60,13 +72,36 @@ dependencyResolutionManagement {
 // build.gradle.kts
 dependencies {
     implementation("com.github.HectorIFC:mosaic:mosaic-core-v0.0.1")
-    // Tessera vem como dependência transitiva — não precisa declarar explicitamente
+    // Tessera comes as a transitive dependency — no need to declare it explicitly
 }
 ```
 
-## Uso básico
+### Gradle (Kotlin DSL) — via GitHub Packages
 
-### Pipeline completo com Tessera
+```kotlin
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven {
+            url = uri("https://maven.pkg.github.com/HectorIFC/mosaic")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+
+// build.gradle.kts
+dependencies {
+    implementation("dev.mosaic:mosaic-core:0.0.1")
+}
+```
+
+## Quick start
+
+### Full pipeline with Tessera
 
 ```kotlin
 import dev.mosaic.EmbeddingTable
@@ -75,28 +110,28 @@ import dev.mosaic.Initializer
 import dev.tessera.BpeTokenizer
 
 fun main() {
-    // 1. Carregar tokenizer (treinado previamente com Tessera)
+    // 1. Load a previously-trained Tessera tokenizer
     val tokenizer = BpeTokenizer.load("tessera.json")
 
-    // 2. Criar embedding table com vocabSize compatível
+    // 2. Create an embedding table with a matching vocab size
     val embeddings = EmbeddingTable.create(
         vocabSize = tokenizer.vocabSize,
         embeddingDim = 128,
-        initializer = Initializer.uniformDefault(seed = 42L)
+        initializer = Initializer.uniformDefault(seed = 42L),
     )
 
-    // 3. Combinar em pipeline
+    // 3. Wire them into a pipeline
     val pipeline = TesseraEmbeddings(tokenizer, embeddings)
     val vectors = pipeline.encode("Hello, mosaic!")
-    
+
     println("Got ${vectors.size} vectors of dim ${vectors[0].size}")
 
-    // 4. Salvar para reuso
+    // 4. Persist for later
     embeddings.save("mosaic.bin")
 }
 ```
 
-### Uso direto da EmbeddingTable
+### Direct EmbeddingTable use
 
 ```kotlin
 val table = EmbeddingTable.create(vocabSize = 1000, embeddingDim = 64)
@@ -104,87 +139,103 @@ val table = EmbeddingTable.create(vocabSize = 1000, embeddingDim = 64)
 // Lookup
 val v = table.get(id = 42)
 
-// Write (para treino externo)
+// Write (for external training loops)
 val newVec = FloatArray(64) { 0.1f * it }
 table.set(id = 42, vector = newVec)
 
-// Similaridade
+// Similarity
 val similar = table.mostSimilar(id = 42, topK = 5)
-similar.forEach { (id, score) ->
-    println("Token $id → score $score")
-}
+similar.forEach { (id, score) -> println("Token $id → score $score") }
 ```
 
-Mais exemplos no módulo [`mosaic-samples`](./mosaic-samples/).
+More examples in the [`mosaic-samples`](./mosaic-samples/) module.
 
-## Estrutura do projeto
+## Project structure
 
-Este é um projeto **Gradle multi-módulo** com 3 módulos:
+This is a **Gradle multi-module** project with 3 modules:
 
 ```
 mosaic/
-├── mosaic-core/       ← A biblioteca (artefato publicado)
-├── mosaic-cli/        ← Aplicação CLI consumindo a lib
-└── mosaic-samples/    ← Exemplos de uso da lib
+├── mosaic-core/       ← the library (the published JAR)
+├── mosaic-cli/        ← CLI application built on top of the lib
+└── mosaic-samples/    ← runnable usage examples
 ```
 
-- **`mosaic-core`**: o JAR consumível. API pública minimalista.
-- **`mosaic-cli`**: aplicação rodável (`./gradlew :mosaic-cli:run`) com comandos `create`, `inspect`, `stats`, `similar`, `encode`. Útil pra debug interativo de embeddings.
-- **`mosaic-samples`**: pequenos programas Kotlin com `main()` mostrando padrões de uso da lib.
+- **`mosaic-core`** — the consumable JAR. Minimal public API. Published to JitPack and GitHub Packages.
+- **`mosaic-cli`** — runnable application (`./gradlew :mosaic-cli:run`) with commands `create`, `inspect`, `stats`, `similar`, `encode`. Useful for interactive debugging.
+- **`mosaic-samples`** — small Kotlin programs with `main()` demonstrating usage patterns.
 
-## Como rodar localmente
+## Running locally
 
 ```bash
-# Buildar tudo
+# Build everything
 ./gradlew build
 
-# Rodar os testes
+# Run tests
 ./gradlew test
 
-# Rodar a pipeline completa de qualidade
+# Full quality pipeline
 ./gradlew test koverVerify ktlintCheck detekt
 
-# Instalar a lib no Maven Local pra testar em outros projetos
+# Install the library into Maven Local for testing in other projects
 ./gradlew publishToMavenLocal
 
-# Rodar a CLI
+# Run the CLI
 ./gradlew :mosaic-cli:run --args="--help"
 ./gradlew :mosaic-cli:run --args="create --vocab-size 1000 --dim 64 --output embeddings.bin"
 ./gradlew :mosaic-cli:run --args="inspect --input embeddings.bin"
 
-# Rodar um sample
+# Run a sample
 ./gradlew :mosaic-samples:run -PmainClass=dev.mosaic.samples.QuickStartSampleKt
 ```
 
-## Arquitetura
+## Architecture
 
-Em alto nível:
+In a nutshell:
 
-1. **Storage:** A matriz é armazenada como `FloatArray` 1D contíguo de tamanho `vocabSize * embeddingDim`. Acesso a `row[i]` é via `data[i * dim .. (i+1) * dim - 1]`.
-2. **Lookup:** `get(id)` retorna uma **cópia** do trecho — nunca uma referência interna.
-3. **Operações vetoriais:** Todas em `VectorOps` (stateless). Acumulação em `Double` pra evitar perda de precisão; retorno em `Float`.
-4. **`mostSimilar`:** Implementado com min-heap de tamanho K para O(N log K).
-5. **Persistência:** Binário compacto (`.bin`) + metadata JSON (`.meta.json`). Checksum SHA-256 verifica integridade.
-6. **Integração Tessera:** `TesseraEmbeddings` combina tokenizer e embedding numa única classe, validando vocabSize no construtor.
+1. **Storage** — the matrix is held in a single contiguous `FloatArray` of size `vocabSize × embeddingDim`. Row `i` lives at offset `i × embeddingDim`.
+2. **Lookup** — `get(id)` returns a **copy** of the slice. Mutating the result never touches the table.
+3. **Vector ops** — all live in stateless `VectorOps`. Sums are accumulated in `Double` and narrowed back to `Float` on return, avoiding precision drift.
+4. **`mostSimilar`** — implemented with a fixed-size min-heap for `O(N log K)`.
+5. **Persistence** — compact binary `.bin` (16-byte header + raw float32 LE) + JSON `.meta.json` sidecar. SHA-256 checksum verifies integrity.
+6. **Tessera integration** — `TesseraEmbeddings` combines tokenizer and table into one class; the vocab-size match is checked at construction.
 
-Veja [ARCHITECTURE.md](./ARCHITECTURE.md) (criado na Fase 4) para detalhes técnicos.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the deeper rationale.
+
+## Benchmarks
+
+On Apple M1 / JVM 21, at `dim = 128`:
+
+| vocabSize | `mostSimilar(topK=10)` | save     | load     |
+|----------:|-----------------------:|---------:|---------:|
+| 10 000    | **3.09 ms**            | 11.10 ms | 4.69 ms  |
+| 50 000    | 11.67 ms               | 50.48 ms | 22.14 ms |
+| 100 000   | 23.16 ms               | 108.06 ms | 80.62 ms |
+
+The PRD §3.2 acceptance criterion (`< 100 ms at 10 K vocab × 128 dim`) is met with a ~32× margin. Full details in [BENCHMARKS.md](./BENCHMARKS.md).
 
 ## Roadmap
 
-- [x] Definir escopo e arquitetura (ver PRD.md)
-- [ ] **Fase 0**: Setup Gradle multi-módulo + infraestrutura GitHub (workflows, dependabot, PR template, detekt) + Tessera dependency
-- [ ] **Fase 1**: Core lib (EmbeddingTable, Initializer, VectorOps, mostSimilar)
-- [ ] **Fase 2**: Persistência binária + integração TesseraEmbeddings
-- [ ] **Fase 3**: Samples + benchmarks + cobertura ≥ 80%
-- [ ] **Fase 4**: CLI (create, inspect, stats, similar, encode)
-- [ ] **Fase 5**: GitHub Pages no ar (logo + vídeos MP4 + paleta laranja/preto/branco)
-- [ ] **Fase 6**: Publicação no JitPack + polish
+- [x] Define scope and architecture (see [PRD.md](./PRD.md))
+- [x] **Phase 0** — Gradle multi-module setup + GitHub infrastructure (workflows, dependabot, PR template, detekt) + Tessera dependency
+- [x] **Phase 1** — Core lib (EmbeddingTable, Initializer, VectorOps, mostSimilar)
+- [x] **Phase 2** — Binary persistence + TesseraEmbeddings integration
+- [x] **Phase 3** — Samples + benchmarks + ≥ 80 % coverage
+- [x] **Phase 4** — CLI (create, inspect, stats, similar, encode)
+- [x] **Phase 5** — GitHub Pages live (logo + MP4 animations + orange/black/white palette)
+- [x] **Phase 6** — Publication on JitPack + polish (v0.0.1)
 
-## Projetos relacionados
+## Related projects
 
-- **[Tessera](https://github.com/HectorIFC/tessera)** — tokenizer BPE byte-level (dependência de Mosaic)
-- **Próximo projeto (futuro)** — pode ser um treinador de embeddings (Word2Vec/Skip-gram) ou um mini-transformer
+- **[Tessera](https://github.com/HectorIFC/tessera)** — byte-level BPE tokenizer (Mosaic depends on it via JitPack)
+- **A future project** — possibly a Word2Vec/Skip-gram trainer that consumes Mosaic as its storage, or a small transformer
 
-## Licença
+## License
 
-MIT — veja [LICENSE](./LICENSE).
+MIT — see [LICENSE](./LICENSE).
+
+---
+
+> *"Mosaic" — an artwork composed of many individual pieces (tesserae) arranged to form a complete image.*
+>
+> *In Tessera, each token is an isolated piece — a chunk of bytes with an ID. In Mosaic, those pieces find their place in a vector space where, together, they begin to form meaning. A token alone is just an index; surrounded by its neighbors, it is part of a larger semantic structure.*

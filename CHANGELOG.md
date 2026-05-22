@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.0.1] — 2026-05-22
+
 ### Added
+
+#### Phase 6 — Publication & polish
+- Root `README.md` rewritten end-to-end in English: badges (CI, JitPack, license, coverage, Kotlin, JVM), updated status, all 6 phases checked, benchmark summary table, related projects, mosaic etymology
+- `mosaic-core/README.md` rewritten with full module reference (JitPack + GitHub Packages snippets, runtime deps table, public API at a glance, build instructions, cross-links)
+- `ARCHITECTURE.md` covering module layout, flat 1D storage rationale, Float vs Double, top-K min-heap, persistence format and validation order, Tessera integration constraint, CLI design (manual parser, `runCli(args): Int`, exit codes), initializer determinism, and explicitly out-of-scope features
+- KDoc coverage audited on every top-level public symbol in `mosaic-core`
+- CHANGELOG cut for v0.0.1
 
 #### Phase 5 — GitHub Pages site
 - `docs/index.html` — single-page site with 10 sections (nav, hero, stats, features, how-it-works, visualized, quick start, tech stack, quality, footer)
