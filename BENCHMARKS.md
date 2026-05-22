@@ -26,7 +26,7 @@ Median time for a single `mostSimilar` call against the entire vocabulary. Imple
 | 50 000    | **11.67 ms**   |
 | 100 000   | **23.16 ms**   |
 
-Scaling is sub-linear with vocab size in this range, consistent with O(N log K) for fixed K = 10. The PRD §3.2 acceptance criterion of "< 100 ms at vocab 10 000, dim 128" is met with a ~32× margin.
+Scaling is sub-linear with vocab size in this range, consistent with O(N log K) for fixed K = 10. The acceptance criterion of "< 100 ms at vocab 10 000, dim 128" is met with a ~32× margin.
 
 ## Persistence (`save` / `load`)
 
@@ -50,10 +50,10 @@ Approximate heap occupancy of a freshly-allocated `EmbeddingTable`, measured via
 | 50 000    | 24.41 MB    | 25.00 MB  |
 | 100 000   | 48.83 MB    | 49.00 MB  |
 
-Measured memory tracks the theoretical lower bound within ~1 % — confirming that the flat `FloatArray` storage (PRD §4.6) introduces effectively zero overhead per row, unlike a nested `Array<FloatArray>` which would add an `Array` object header plus a pointer per row.
+Measured memory tracks the theoretical lower bound within ~1 % — confirming that the flat `FloatArray` storage introduces effectively zero overhead per row, unlike a nested `Array<FloatArray>` which would add an `Array` object header plus a pointer per row.
 
 ## Notes
 
 - These are micro-benchmarks, not JMH-grade measurements. They're useful as order-of-magnitude sanity checks, not as the final word on performance.
-- Numbers will improve once `mostSimilar` is opt-in pre-normalized (see PRD §4.7 — currently each query recomputes both norms; pre-normalizing rows would halve the per-row work).
+- Numbers will improve once `mostSimilar` is opt-in pre-normalized (currently each query recomputes both norms; pre-normalizing rows would halve the per-row work).
 - Save/load could be sped up further by streaming the SHA-256 computation alongside the I/O (currently it's two passes over the buffer). Not currently a bottleneck.

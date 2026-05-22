@@ -4,7 +4,7 @@ package dev.mosaic.internal
  * Storage backing for a 2D float matrix laid out as a single contiguous
  * [FloatArray]. Row `r` occupies indices `[r*cols, (r+1)*cols)`.
  *
- * The flat layout is mandated by the PRD (§4.6) — `Array<FloatArray>` would
+ * The flat layout is mandated — `Array<FloatArray>` would
  * add a level of indirection and hurt cache locality during top-K scans over
  * the whole matrix.
  */

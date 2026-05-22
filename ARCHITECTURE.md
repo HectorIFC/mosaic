@@ -103,7 +103,7 @@ This is `O(N log K)` — for `K = 10` and `N = 100 000` that's about 10× fewer 
 
 ### Why not pre-normalize all rows?
 
-Pre-normalizing means cosine reduces to a single dot product (no per-row norm). It's roughly 2× faster but changes semantics — the table's rows are no longer the "raw" vectors you wrote with `set`. The PRD calls this out as an opt-in post-v1 optimization. For now we keep `set/get` symmetric.
+Pre-normalizing means cosine reduces to a single dot product (no per-row norm). It's roughly 2× faster but changes semantics — the table's rows are no longer the "raw" vectors you wrote with `set`. For now we keep `set/get` symmetric.
 
 ---
 
@@ -244,6 +244,6 @@ These are the *uniform-variant* bounds, not the Gaussian forms. They map cleanly
 - **GPU.** JVM-only. CPU-only. The `mostSimilar` numbers in [`BENCHMARKS.md`](./BENCHMARKS.md) show that for vocab sizes up to ~100 K, this is fine.
 - **Quantization.** No int8, no int4. Float32 is the format. If a future project wants quantized tables, it'll be a separate format (and probably a separate library).
 - **Multi-platform.** JVM target only. The API would translate cleanly to Kotlin Multiplatform — the only `java.io.File` references are in convenience overloads — but it's not a current goal.
-- **Approximate nearest neighbors.** Exact `mostSimilar` only. FAISS-style indexing is listed in the PRD's stretch goals and would belong in a separate library or module.
+- **Approximate nearest neighbors.** Exact `mostSimilar` only. FAISS-style indexing it`s stretch goals and would belong in a separate library or module.
 
 These are not oversights; they are scoping decisions made explicitly to keep `mosaic-core` small, auditable, and dependency-free.

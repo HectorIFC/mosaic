@@ -23,7 +23,7 @@
 
 ✅ **v0.0.1 ready** — all 6 phases complete.
 
-See [PRD.md](./PRD.md) for the full specification and [ARCHITECTURE.md](./ARCHITECTURE.md) for design details.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for design details.
 
 ## About
 
@@ -212,11 +212,10 @@ On Apple M1 / JVM 21, at `dim = 128`:
 | 50 000    | 11.67 ms               | 50.48 ms | 22.14 ms |
 | 100 000   | 23.16 ms               | 108.06 ms | 80.62 ms |
 
-The PRD §3.2 acceptance criterion (`< 100 ms at 10 K vocab × 128 dim`) is met with a ~32× margin. Full details in [BENCHMARKS.md](./BENCHMARKS.md).
+The acceptance criterion (`< 100 ms at 10 K vocab × 128 dim`) is met with a ~32× margin. Full details in [BENCHMARKS.md](./BENCHMARKS.md).
 
 ## Roadmap
 
-- [x] Define scope and architecture (see [PRD.md](./PRD.md))
 - [x] **Phase 0** — Gradle multi-module setup + GitHub infrastructure (workflows, dependabot, PR template, detekt) + Tessera dependency
 - [x] **Phase 1** — Core lib (EmbeddingTable, Initializer, VectorOps, mostSimilar)
 - [x] **Phase 2** — Binary persistence + TesseraEmbeddings integration
