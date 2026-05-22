@@ -86,13 +86,18 @@ jobs:
           # Build configuration — version used by Gradle / Maven publish
           sed -i -E "s/^version=.*/version=${VERSION}/" gradle.properties
 
-          # Landing page (docs/index.html) — hero badge, JitPack snippet, footer
-          sed -i -E "s/v[0-9]+\.[0-9]+\.[0-9]+/${TAG}/g" docs/index.html
+          # Landing page (docs/index.html) — targeted replacements so the Tessera
+          # version ref ("v0.0.6" in the tech-stack) is NOT clobbered by a blanket
+          # vX.Y.Z replace. Each pattern matches a specific structural context.
+          sed -i -E "s,(<span class=\"badge\">)v[0-9]+\.[0-9]+\.[0-9]+(</span>),\1${TAG}\2," docs/index.html
+          sed -i -E "s/mosaic-core-v[0-9]+\.[0-9]+\.[0-9]+/mosaic-core-${TAG}/g" docs/index.html
+          sed -i -E "s/>v[0-9]+\.[0-9]+\.[0-9]+ · Tessera/>${TAG} · Tessera/g" docs/index.html
 
-          # Root README — JitPack installation snippet
+          # Root README — JitPack snippet and GitHub Packages Maven coordinate
           sed -i -E "s/mosaic-core-v[0-9]+\.[0-9]+\.[0-9]+/mosaic-core-${TAG}/g" README.md
+          sed -i -E "s/mosaic-core:[0-9]+\.[0-9]+\.[0-9]+/mosaic-core:${VERSION}/g" README.md
 
-          # mosaic-core README — JitPack snippet and GitHub Packages Maven coordinate
+          # mosaic-core README — same install snippets
           sed -i -E "s/mosaic-core-v[0-9]+\.[0-9]+\.[0-9]+/mosaic-core-${TAG}/g" mosaic-core/README.md
           sed -i -E "s/mosaic-core:[0-9]+\.[0-9]+\.[0-9]+/mosaic-core:${VERSION}/g" mosaic-core/README.md
 
