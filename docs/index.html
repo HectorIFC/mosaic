@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mosaic — Lookup-based token embeddings for the JVM, in pure Kotlin</title>
+
+    <meta name="description" content="Mosaic is a Kotlin library that provides a trainable embedding table mapping token IDs to dense float vectors. Sister project to Tessera. JVM-only, no ML deps, flat 1D storage.">
+    <meta name="theme-color" content="#f97316">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Mosaic — Lookup-based token embeddings for the JVM">
+    <meta property="og:description" content="A trainable embedding table in pure Kotlin. Sister project to Tessera (BPE tokenizer). Pipeline: text → tokens → vectors.">
+    <meta property="og:image" content="https://hectorifc.github.io/mosaic/logo/logo-512.png">
+    <meta property="og:url" content="https://hectorifc.github.io/mosaic/">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Mosaic — Embeddings, piece by piece.">
+    <meta name="twitter:description" content="Lookup-based token embeddings for the JVM, in pure Kotlin.">
+    <meta name="twitter:image" content="https://hectorifc.github.io/mosaic/logo/logo-512.png">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="logo/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="logo/favicon-16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="logo/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="logo/favicon-48.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="logo/favicon-180.png">
+    <link rel="manifest" href="site.webmanifest">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --bg2: #141414;
+            --surface: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #fb923c;
+            --primary2: #f97316;
+            --accent: #ea580c;
+            --text: #f5f5f5;
+            --muted: #737373;
+            --muted2: #a3a3a3;
+            --code-bg: #171717;
+            --radius: 12px;
+            --radius-lg: 20px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Decorative glow blobs */
+        body::before, body::after { content: ''; position: fixed; pointer-events: none; z-index: 0; filter: blur(120px); border-radius: 50%; }
+        body::before { width: 600px; height: 600px; top: -200px; left: -200px; background: var(--primary2); opacity: 0.12; }
+        body::after  { width: 500px; height: 500px; bottom: -150px; right: -150px; background: var(--accent); opacity: 0.10; }
+
+        .blob-mid { position: fixed; width: 400px; height: 400px; right: 20%; top: 40%; background: var(--primary); opacity: 0.08; filter: blur(120px); border-radius: 50%; pointer-events: none; z-index: 0; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+
+        /* Nav */
+        nav {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 1rem 0; }
+        .nav-brand { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; font-size: 1.125rem; }
+        .nav-brand img { width: 32px; height: 32px; }
+        .nav-links { display: flex; gap: 1.75rem; align-items: center; }
+        .nav-links a { color: var(--muted2); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); color: var(--text); text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
+        .nav-cta:hover { background: var(--primary2); border-color: var(--primary2); }
+
+        /* Hero */
+        .hero { padding: 6rem 0 4rem; text-align: center; position: relative; }
+        .hero-logo { width: 88px; height: 88px; margin: 0 auto 1.5rem; display: block; }
+        .badge { display: inline-block; padding: 0.4rem 0.85rem; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--primary); margin-bottom: 1.5rem; }
+        h1.headline { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; margin-bottom: 1.5rem; }
+        h1.headline .grad { background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .hero p.lead { font-size: 1.125rem; color: var(--muted2); max-width: 640px; margin: 0 auto 2rem; }
+        .hero-cta { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.85rem 1.5rem; border-radius: var(--radius); font-weight: 500; text-decoration: none; transition: all 0.2s; font-size: 0.95rem; border: 1px solid transparent; }
+        .btn-primary { background: var(--primary2); color: white; }
+        .btn-primary:hover { background: var(--accent); transform: translateY(-1px); }
+        .btn-ghost { background: var(--surface); border-color: var(--border); color: var(--text); }
+        .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* Stats bar */
+        .stats { padding: 3rem 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+        .stat { padding: 1.5rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--primary); font-family: 'JetBrains Mono', monospace; }
+        .stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.35rem; }
+
+        /* Section base */
+        section { padding: 5rem 0; position: relative; }
+        section h2 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+        section .section-lead { color: var(--muted2); font-size: 1.05rem; max-width: 620px; margin-bottom: 3rem; }
+
+        /* Features */
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+        .feature { padding: 1.75rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); transition: all 0.3s; }
+        .feature:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .feature-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-weight: 700; color: white; font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; }
+        .feature h3 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .feature p { color: var(--muted2); font-size: 0.95rem; }
+
+        /* How it works */
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; counter-reset: step; }
+        .step { padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); position: relative; counter-increment: step; }
+        .step::before { content: counter(step, decimal-leading-zero); position: absolute; top: -0.5rem; right: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; padding: 0.25rem 0.6rem; background: var(--primary2); color: white; border-radius: 999px; font-weight: 600; }
+        .step h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--primary); }
+        .step p { color: var(--muted2); font-size: 0.9rem; }
+
+        /* Visualized */
+        .videos { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        @media (max-width: 720px) { .videos { grid-template-columns: 1fr; } }
+        .video-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .video-card video { width: 100%; display: block; background: #000; }
+        .video-caption { padding: 1rem 1.25rem; font-size: 0.875rem; color: var(--muted2); }
+        .video-caption strong { color: var(--text); display: block; margin-bottom: 0.15rem; }
+
+        /* Quick start */
+        .quickstart-blocks { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 720px) { .quickstart-blocks { grid-template-columns: 1fr; } }
+        .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .code-header { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+        .code-block pre { padding: 1.25rem; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; line-height: 1.55; color: #e5e5e5; }
+        .code-block .k { color: var(--primary); } /* keyword */
+        .code-block .s { color: #86efac; } /* string */
+        .code-block .c { color: var(--muted); font-style: italic; } /* comment */
+        .code-block .n { color: #93c5fd; } /* number */
+
+        /* Tech stack */
+        .stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 1rem; }
+        .stack-item { padding: 1.25rem 0.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); text-align: center; font-size: 0.875rem; }
+        .stack-item .label { color: var(--muted2); margin-top: 0.35rem; font-size: 0.75rem; }
+        .stack-item strong { color: var(--primary); font-family: 'JetBrains Mono', monospace; }
+
+        /* Quality */
+        .quality-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; }
+        .quality { padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+        .quality .big { font-size: 1.75rem; font-weight: 700; color: var(--primary); font-family: 'JetBrains Mono', monospace; }
+        .quality .label { color: var(--muted2); font-size: 0.9rem; margin-top: 0.25rem; }
+
+        /* Footer */
+        footer { padding: 3rem 0 2rem; border-top: 1px solid var(--border); margin-top: 3rem; text-align: center; }
+        footer p { color: var(--muted); font-size: 0.875rem; }
+        footer a { color: var(--primary); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        /* Scroll-in animations — progressive enhancement.
+           Without JS, content is fully visible (no transform / opacity tricks).
+           When the inline script at the bottom adds the .js class to <html>,
+           we engage the fade-in transition and the IntersectionObserver
+           promotes each .fade-in to .visible as it enters the viewport. */
+        .fade-in { opacity: 1; transform: none; }
+        .js .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .js .fade-in.visible { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="blob-mid"></div>
+
+    <nav>
+        <div class="container nav-inner">
+            <a href="#" class="nav-brand" style="text-decoration: none; color: inherit;">
+                <img src="logo/logo-64.png" alt="Mosaic logo">
+                <span>Mosaic</span>
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How it works</a>
+                <a href="#quick-start">Quick start</a>
+                <a href="#quality">Quality</a>
+                <a href="https://github.com/HectorIFC/mosaic" class="nav-cta">View on GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <img src="logo/logo-256.png" alt="Mosaic" class="hero-logo">
+            <span class="badge">v0.0.0</span>
+            <h1 class="headline">Embeddings,<br><span class="grad">piece by piece.</span></h1>
+            <p class="lead">A trainable embedding table for the JVM, in pure Kotlin. Sister project to <a href="https://github.com/HectorIFC/tessera" style="color: var(--primary);">Tessera</a> — completing the <code style="color: var(--primary); font-family: 'JetBrains Mono', monospace;">text → tokens → vectors</code> pipeline.</p>
+            <div class="hero-cta">
+                <a href="#quick-start" class="btn btn-primary">Get started</a>
+                <a href="https://github.com/HectorIFC/mosaic" class="btn btn-ghost">View on GitHub</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="stat-value" data-target="91">0</div>
+                    <div class="stat-label">Tests passing</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" data-target="97.6" data-suffix="%">0</div>
+                    <div class="stat-label">Line coverage</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" data-target="22">0</div>
+                    <div class="stat-label">CLI integration tests</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" data-target="6">0</div>
+                    <div class="stat-label">Initializers</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" data-target="0">0</div>
+                    <div class="stat-label">ML dependencies</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" data-target="3">0</div>
+                    <div class="stat-label">Gradle modules</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="fade-in">
+        <div class="container">
+            <h2>Built for storage, lookup, and similarity — nothing more</h2>
+            <p class="section-lead">Mosaic does one thing well: it owns the matrix that turns token IDs into vectors. No training, no GPU, no surprise allocations.</p>
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">[ ]</div>
+                    <h3>Flat 1D storage</h3>
+                    <p>Embeddings live in a single contiguous <code>FloatArray</code>. Cache-friendly row access, ~1 % overhead over the theoretical bound.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">~</div>
+                    <h3>6 initializers</h3>
+                    <p><code>uniformDefault</code>, <code>uniform</code>, <code>xavier</code>, <code>he</code>, <code>zeros</code>, <code>constant</code> — all seedable for reproducible runs.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">▲</div>
+                    <h3>Top-K nearest</h3>
+                    <p>O(N log K) <code>mostSimilar</code> via a fixed-size min-heap. ~3 ms on 10 K vocab × 128 dim.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⇆</div>
+                    <h3>Tessera-native</h3>
+                    <p><code>TesseraEmbeddings</code> wires a BPE tokenizer straight into the table. Vocab-size mismatches caught at construction.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⌂</div>
+                    <h3>Binary persistence</h3>
+                    <p>16-byte header + raw float32 LE + JSON sidecar with SHA-256. Save/load round-trips exactly.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">∅</div>
+                    <h3>No ML deps</h3>
+                    <p>Pure Kotlin stdlib + <code>kotlinx.serialization</code> + Tessera. No DJL, no KInference, no DL4J.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="fade-in">
+        <div class="container">
+            <h2>How a lookup actually happens</h2>
+            <p class="section-lead">Four steps from a token ID to a copy of its embedding vector.</p>
+            <div class="steps">
+                <div class="step">
+                    <h4>Token ID</h4>
+                    <p>A non-negative integer in <code>[0, vocabSize)</code>, usually produced by Tessera.</p>
+                </div>
+                <div class="step">
+                    <h4>Flat offset</h4>
+                    <p>Mosaic computes <code>id × embeddingDim</code> to index into the contiguous backing array.</p>
+                </div>
+                <div class="step">
+                    <h4>Range copy</h4>
+                    <p><code>System.arraycopy</code> pulls <code>embeddingDim</code> floats into a fresh buffer — no shared references.</p>
+                </div>
+                <div class="step">
+                    <h4>Vector out</h4>
+                    <p>You get a <code>FloatArray</code> that you can mutate freely. The table is untouched.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="visualized" class="fade-in">
+        <div class="container">
+            <h2>Visualized</h2>
+            <p class="section-lead">The two hot paths, animated.</p>
+            <div class="videos">
+                <div class="video-card">
+                    <video src="lookup.mp4" autoplay loop muted playsinline aria-label="Lookup animation"></video>
+                    <div class="video-caption">
+                        <strong>Lookup</strong>
+                        Token ID → flat offset → vector copy.
+                    </div>
+                </div>
+                <div class="video-card">
+                    <video src="similar.mp4" autoplay loop muted playsinline aria-label="Top-K similarity animation"></video>
+                    <div class="video-caption">
+                        <strong>mostSimilar(query, topK=10)</strong>
+                        Cosine vs every row, top-K in a min-heap.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="quick-start" class="fade-in">
+        <div class="container">
+            <h2>Quick start</h2>
+            <p class="section-lead">Add the JitPack dependency, create a table, encode some text.</p>
+            <div class="quickstart-blocks">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>build.gradle.kts</span>
+                        <span>Gradle</span>
+                    </div>
+<pre><span class="c">// settings.gradle.kts</span>
+<span class="k">dependencyResolutionManagement</span> {
+    <span class="k">repositories</span> {
+        <span class="k">mavenCentral</span>()
+        <span class="k">maven</span> { url = uri(<span class="s">"https://jitpack.io"</span>) }
+    }
+}
+
+<span class="c">// build.gradle.kts</span>
+<span class="k">dependencies</span> {
+    <span class="k">implementation</span>(<span class="s">"com.github.HectorIFC:mosaic:mosaic-core-v0.0.0"</span>)
+}</pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>Main.kt</span>
+                        <span>Kotlin</span>
+                    </div>
+<pre><span class="k">import</span> dev.mosaic.EmbeddingTable
+<span class="k">import</span> dev.mosaic.Initializer
+<span class="k">import</span> dev.mosaic.TesseraEmbeddings
+<span class="k">import</span> dev.tessera.BpeTokenizer
+
+<span class="k">fun</span> main() {
+    <span class="k">val</span> tokenizer = BpeTokenizer.load(<span class="s">"tessera.json"</span>)
+    <span class="k">val</span> table = EmbeddingTable.create(
+        vocabSize    = tokenizer.vocabSize,
+        embeddingDim = <span class="n">128</span>,
+        initializer  = Initializer.uniformDefault(seed = <span class="n">42L</span>),
+    )
+    <span class="k">val</span> pipeline = TesseraEmbeddings(tokenizer, table)
+    <span class="k">val</span> vectors = pipeline.encode(<span class="s">"Hello, mosaic!"</span>)
+
+    table.save(<span class="s">"mosaic.bin"</span>)
+}</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="tech-stack" class="fade-in">
+        <div class="container">
+            <h2>Stack</h2>
+            <p class="section-lead">Minimal by design.</p>
+            <div class="stack-grid">
+                <div class="stack-item"><strong>Kotlin</strong><div class="label">2.3.21</div></div>
+                <div class="stack-item"><strong>JVM</strong><div class="label">target 21</div></div>
+                <div class="stack-item"><strong>Gradle</strong><div class="label">8.14.1</div></div>
+                <div class="stack-item"><strong>Kotest</strong><div class="label">6.1.11</div></div>
+                <div class="stack-item"><strong>kotlinx</strong><div class="label">.serialization</div></div>
+                <div class="stack-item"><strong>Tessera</strong><div class="label">v0.0.6</div></div>
+                <div class="stack-item"><strong>ktlint</strong><div class="label">12.1.2</div></div>
+                <div class="stack-item"><strong>detekt</strong><div class="label">1.23.8</div></div>
+                <div class="stack-item"><strong>kover</strong><div class="label">0.8.3</div></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="quality" class="fade-in">
+        <div class="container">
+            <h2>Quality</h2>
+            <p class="section-lead">Coverage, linting, and benchmarks aren't an afterthought.</p>
+            <div class="quality-grid">
+                <div class="quality">
+                    <div class="big">97.6%</div>
+                    <div class="label">Line coverage on <code>mosaic-core</code> (threshold 80 %)</div>
+                </div>
+                <div class="quality">
+                    <div class="big">91</div>
+                    <div class="label">Tests, all passing on every PR</div>
+                </div>
+                <div class="quality">
+                    <div class="big">~3 ms</div>
+                    <div class="label"><code>mostSimilar</code> at 10 K vocab × 128 dim</div>
+                </div>
+                <div class="quality">
+                    <div class="big">explicitApi</div>
+                    <div class="label">Every public symbol carries a KDoc</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>
+                Mosaic is a sister project to <a href="https://github.com/HectorIFC/tessera">Tessera</a>.
+                <br>
+                <a href="https://github.com/HectorIFC/mosaic">GitHub</a> · <a href="https://github.com/HectorIFC/mosaic/blob/main/BENCHMARKS.md">Benchmarks</a> · MIT
+            </p>
+            <p style="margin-top: 0.75rem;">v0.0.0 · Tessera + Mosaic = full pipeline.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Flag JS as available — CSS selectors gated on `.js` will engage now.
+        document.documentElement.classList.add('js');
+
+        // Count-up animation for stats
+        const counters = document.querySelectorAll('.stat-value[data-target]');
+        const animateCount = (el) => {
+            const target = parseFloat(el.dataset.target);
+            const suffix = el.dataset.suffix || '';
+            const isFloat = target % 1 !== 0;
+            const duration = 1200;
+            const start = performance.now();
+            const tick = (now) => {
+                const t = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - t, 3);
+                const value = target * eased;
+                el.textContent = (isFloat ? value.toFixed(1) : Math.floor(value)) + suffix;
+                if (t < 1) requestAnimationFrame(tick);
+                else el.textContent = (isFloat ? target.toFixed(1) : target) + suffix;
+            };
+            requestAnimationFrame(tick);
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    if (entry.target.classList.contains('stat-value')) animateCount(entry.target);
+                    else entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+
+        counters.forEach((c) => observer.observe(c));
+        document.querySelectorAll('.fade-in').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>
