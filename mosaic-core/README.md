@@ -19,7 +19,7 @@ dependencyResolutionManagement {
 
 // build.gradle.kts
 dependencies {
-    implementation("com.github.HectorIFC:mosaic:mosaic-core-v0.0.2")
+    implementation("com.github.HectorIFC:mosaic:mosaic-core-v0.0.3")
 }
 ```
 
@@ -42,7 +42,7 @@ dependencyResolutionManagement {
 
 // build.gradle.kts
 dependencies {
-    implementation("dev.mosaic:mosaic-core:0.0.2")
+    implementation("dev.mosaic:mosaic-core:0.0.3")
 }
 ```
 
